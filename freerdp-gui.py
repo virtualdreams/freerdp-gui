@@ -12,7 +12,6 @@ import json
 class EntryWindow(Gtk.Window):
     def __init__(self):
         # config
-        self.config = {}
         self.load_config()
 
         # init window
@@ -31,77 +30,78 @@ class EntryWindow(Gtk.Window):
         self.mainbox.pack_start(self.notebook, True, True, 0)
 
         # page 1
-        self.page1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.page1.set_border_width(10)
-        self.notebook.append_page(self.page1, Gtk.Label(label="General"))
+        self.nb_page1 = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.nb_page1.set_border_width(10)
+        self.notebook.append_page(self.nb_page1, Gtk.Label(label="General"))
 
         # page 2
-        self.page2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.page2.set_border_width(10)
-        self.notebook.append_page(self.page2, Gtk.Label(label="Settings"))
+        self.nb_page2 = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.nb_page2.set_border_width(10)
+        self.notebook.append_page(self.nb_page2, Gtk.Label(label="Settings"))
 
         # start page 1
         label = Gtk.Label(label="Hostname")
         label.set_xalign(0.0)
-        self.page1.pack_start(label, False, False, 0)
+        self.nb_page1.pack_start(label, False, False, 0)
 
         # self.hostname = Gtk.Entry()
         # self.hostname.set_text("host.example.org")
         # self.hostname.set_activates_default(True)
         # self.hostname.grab_focus()
         # self.page1.pack_start(self.hostname, False, False, 0)
-        self.host_store = Gtk.ListStore(str)
+        self.hoststore = Gtk.ListStore(str)
         for row in self.config["hosts"]:
-            self.host_store.append([row])
+            self.hoststore.append([row])
         # self.host_store.append(["host.example.org"])
-        self.hostname = Gtk.ComboBox.new_with_model_and_entry(self.host_store)
-        self.hostname.set_entry_text_column(0)
-        self.hostname.set_active(0)
-        child = self.hostname.get_child()
-        child.set_activates_default(True)
-        child.grab_focus()
+        self.cb_hostname = Gtk.ComboBox.new_with_model_and_entry(
+            self.hoststore)
+        self.cb_hostname.set_entry_text_column(0)
+        self.cb_hostname.set_active(0)
+        self.cb_hostname.get_child().set_activates_default(True)
         # renderer_text = Gtk.CellRendererText()
         # self.hostname.pack_start(renderer_text, True)
         # self.hostname.add_attribute(renderer_text, "text", 0)
         # self.hostname.connect("changed", self.on_combo_changed)
 
-        self.page1.pack_start(self.hostname, False, False, 0)
+        self.nb_page1.pack_start(self.cb_hostname, False, False, 0)
 
         label = Gtk.Label(label="Username")
         label.set_xalign(0.0)
-        self.page1.pack_start(label, False, False, 0)
+        self.nb_page1.pack_start(label, False, False, 0)
 
-        self.username = Gtk.Entry()
-        self.username.set_text(self.config["username"])
-        self.username.set_activates_default(True)
-        self.page1.pack_start(self.username, False, False, 0)
+        self.entry_username = Gtk.Entry()
+        self.entry_username.set_text(self.config["username"])
+        self.entry_username.set_activates_default(True)
+        self.nb_page1.pack_start(self.entry_username, False, False, 0)
 
         label = Gtk.Label(label="Password")
         label.set_xalign(0.0)
-        self.page1.pack_start(label, False, False, 0)
+        self.nb_page1.pack_start(label, False, False, 0)
 
-        self.password = Gtk.Entry()
-        self.password.set_text("")
-        self.password.set_activates_default(True)
-        self.password.set_visibility(False)
-        self.page1.pack_start(self.password, False, False, 0)
+        self.entry_password = Gtk.Entry()
+        self.entry_password.set_text("")
+        self.entry_password.set_activates_default(True)
+        self.entry_password.set_visibility(False)
+        self.nb_page1.pack_start(self.entry_password, False, False, 0)
         # end page 1
 
         # start page 2
         self.check_fullscreen = Gtk.CheckButton(label="Fullscreen")
         # self.check_fullscreen.connect("toggled", self.on_editable_toggled)
         self.check_fullscreen.set_active(self.config["fullscreen"])
-        self.page2.pack_start(self.check_fullscreen, False, False, 0)
+        self.nb_page2.pack_start(self.check_fullscreen, False, False, 0)
 
         self.check_clipboard = Gtk.CheckButton(label="Clipboard")
         # self.check_clipboard.connect("toggled", self.on_editable_toggled)
         self.check_clipboard.set_active(self.config["clipboard"])
-        self.page2.pack_start(self.check_clipboard, False, False, 0)
+        self.nb_page2.pack_start(self.check_clipboard, False, False, 0)
 
         self.check_homedrive = Gtk.CheckButton(label="Home Drives")
         # self.check_editable.connect("toggled", self.on_editable_toggled)
         self.check_homedrive.set_active(self.config["homedrive"])
-        self.page2.pack_start(self.check_homedrive, False, False, 0)
+        self.nb_page2.pack_start(self.check_homedrive, False, False, 0)
 
         # self.check_editable = Gtk.CheckButton(label="Editable")
         # self.check_editable.connect("toggled", self.on_editable_toggled)
@@ -114,15 +114,19 @@ class EntryWindow(Gtk.Window):
         self.buttonbox.set_border_width(10)
         self.mainbox.pack_end(self.buttonbox, False, False, 0)
 
-        button = Gtk.Button.new_with_mnemonic("_Connect")
-        button.connect("clicked", self.on_ok_clicked)
-        button.set_can_default(True)
-        self.set_default(button)
-        self.buttonbox.pack_start(button, True, True, 0)
+        self.btn_connect = Gtk.Button.new_with_mnemonic("_Connect")
+        self.btn_connect.connect("clicked", self.on_ok_clicked)
+        self.btn_connect.set_can_default(True)
+        self.set_default(self.btn_connect)
+        self.buttonbox.pack_start(self.btn_connect, True, True, 0)
 
-        button = Gtk.Button.new_with_mnemonic("_Close")
-        button.connect("clicked", self.on_close_clicked)
-        self.buttonbox.pack_start(button, True, True, 0)
+        self.btn_close = Gtk.Button.new_with_mnemonic("_Close")
+        self.btn_close.connect("clicked", self.on_close_clicked)
+        self.buttonbox.pack_start(self.btn_close, True, True, 0)
+
+        # set focus
+        self.show_all()
+        self.cb_hostname.get_child().grab_focus()
 
     def on_ok_clicked(self, button):
         print("on_ok_clicked")
@@ -135,23 +139,24 @@ class EntryWindow(Gtk.Window):
 
         # args.append("/d:domain")
 
-        if self.hostname.get_child().get_text() == "":
+        if self.cb_hostname.get_child().get_text() == "":
             self.show_error("Hostname missing")
             return
         else:
-            args.append("/v:{0}".format(self.hostname.get_child().get_text()))
+            args.append(
+                "/v:{0}".format(self.cb_hostname.get_child().get_text()))
 
-        if self.username.get_text() == "":
+        if self.entry_username.get_text() == "":
             self.show_error("Username missing")
             return
         else:
-            args.append("/u:{0}".format(self.username.get_text()))
+            args.append("/u:{0}".format(self.entry_username.get_text()))
 
-        if self.password.get_text() == "":
+        if self.entry_password.get_text() == "":
             self.show_error("Password missing")
             return
         else:
-            args.append("/p:{0}".format(self.password.get_text()))
+            args.append("/p:{0}".format(self.entry_password.get_text()))
 
         args.append("/disp")
         args.append("/dynamic-resolution")
@@ -195,23 +200,23 @@ class EntryWindow(Gtk.Window):
 
     def run_process(self, args):
         print(args)
-        proc = subprocess.Popen(args)
+        proc = subprocess.Popen(args, start_new_session=True)
         # streamdata = proc.communicate()[0]
         # print(proc.returncode)
 
     def update_hosts(self):
         exists = False
         iter = None
-        item = self.hostname.get_child().get_text()
-        for row in self.host_store:
+        item = self.cb_hostname.get_child().get_text()
+        for row in self.hoststore:
             print(row[0], item)
             if row[0] == item:
                 exists = True
                 iter = row.iter
         if not exists:
-            self.host_store.prepend([item])
+            self.hoststore.prepend([item])
         else:
-            self.host_store.move_after(iter, None)
+            self.hoststore.move_after(iter, None)
 
     def load_config(self):
         cf = os.path.expanduser("~") + "/.freerdp-gui.json"
@@ -234,12 +239,12 @@ class EntryWindow(Gtk.Window):
 
     def save_config(self):
         hosts = []
-        for row in self.host_store:
+        for row in self.hoststore:
             hosts.append(row[0])
 
         config = {
             "hosts": hosts,
-            "username": self.username.get_text(),
+            "username": self.entry_username.get_text(),
             "fullscreen": self.check_fullscreen.get_active(),
             "clipboard": self.check_clipboard.get_active(),
             "homedrive": self.check_homedrive.get_active()
