@@ -36,10 +36,12 @@ class EntryWindow(Gtk.Window):
         self.notebook.append_page(self.nb_page1, Gtk.Label(label="General"))
 
         # page 2
+        self.scroll = Gtk.ScrolledWindow()
         self.nb_page2 = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.nb_page2.set_border_width(10)
-        self.notebook.append_page(self.nb_page2, Gtk.Label(label="Settings"))
+        self.scroll.add(self.nb_page2)
+        self.notebook.append_page(self.scroll, Gtk.Label(label="Settings"))
 
         # start page 1
         label = Gtk.Label(label="Hostname")
@@ -103,6 +105,11 @@ class EntryWindow(Gtk.Window):
         self.check_homedrive.set_active(self.config["homedrive"])
         self.nb_page2.pack_start(self.check_homedrive, False, False, 0)
 
+        self.btn_save = Gtk.Button.new_with_mnemonic("_Export")
+        self.btn_save.connect("clicked", self.on_save_clicked)
+        self.btn_save.set_can_default(True)
+        self.nb_page2.pack_end(self.btn_save, False, False, 0)
+
         # self.check_editable = Gtk.CheckButton(label="Editable")
         # self.check_editable.connect("toggled", self.on_editable_toggled)
         # self.check_editable.set_active(True)
@@ -131,33 +138,77 @@ class EntryWindow(Gtk.Window):
     def on_ok_clicked(self, button):
         print("on_ok_clicked")
 
-        # update host list
-        self.update_hosts()
-
-        # the application
-        args = ["xfreerdp"]
-
-        # args.append("/d:domain")
-
+        # check inputs
         if self.cb_hostname.get_child().get_text() == "":
             self.show_error("Hostname missing")
             return
-        else:
-            args.append(
-                "/v:{0}".format(self.cb_hostname.get_child().get_text()))
 
         if self.entry_username.get_text() == "":
             self.show_error("Username missing")
             return
-        else:
-            args.append("/u:{0}".format(self.entry_username.get_text()))
 
         if self.entry_password.get_text() == "":
             self.show_error("Password missing")
             return
-        else:
-            args.append("/p:{0}".format(self.entry_password.get_text()))
 
+        # update host list
+        self.update_hosts()
+
+        # build parameters
+        args = self.build_parameters()
+
+        self.run_process(args)
+
+    def on_close_clicked(self, button):
+        print("on_close_clicked")
+        self.close()
+
+    def on_save_clicked(self, button):
+        print("on_save_event")
+        fc = Gtk.FileChooserDialog(
+            title="Save File", parent=self, action=Gtk.FileChooserAction.SAVE)
+        fc.add_buttons(
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_SAVE,
+            Gtk.ResponseType.ACCEPT,
+        )
+        fc.set_do_overwrite_confirmation(True)
+        fc.set_current_name("Untitled document.rdp")
+
+        filter = Gtk.FileFilter()
+        filter.set_name("freerdp configuration")
+        filter.add_pattern("*.rdp")
+        fc.add_filter(filter)
+
+        response = fc.run()
+        if response == Gtk.ResponseType.ACCEPT:
+            path = fc.get_filename()
+            args = self.build_parameters()[1:]
+            self.export_config(path, args)
+        fc.destroy()
+
+    def on_delete_event(event, self, widget):
+        print("on_delete_event")
+        self.save_config()
+        return False
+
+    def show_error(self, text):
+        dialog = Gtk.MessageDialog(
+            transient_for=self, flags=0, message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, text="Error",)
+        dialog.format_secondary_text(text)
+        dialog.run()
+        dialog.destroy()
+
+    def build_parameters(self):
+        # the application
+        args = ["xfreerdp"]
+
+        # the arguments
+        # args.append("/d:domain")
+        args.append("/v:{0}".format(self.cb_hostname.get_child().get_text()))
+        args.append("/u:{0}".format(self.entry_username.get_text()))
+        args.append("/p:{0}".format(self.entry_password.get_text()))
         args.append("/disp")
         args.append("/dynamic-resolution")
         args.append("/rfx")
@@ -179,24 +230,7 @@ class EntryWindow(Gtk.Window):
         if self.check_homedrive.get_active():
             args.append("/home-drive")
 
-        self.run_process(args)
-
-    def on_close_clicked(self, button):
-        print("on_close_clicked")
-        self.close()
-        # Gtk.main_quit()
-
-    def on_delete_event(event, self, widget):
-        print("on_delete_event")
-        self.save_config()
-        return False
-
-    def show_error(self, text):
-        dialog = Gtk.MessageDialog(
-            transient_for=self, flags=0, message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, text="Error",)
-        dialog.format_secondary_text(text)
-        dialog.run()
-        dialog.destroy()
+        return args
 
     def run_process(self, args):
         print(args)
@@ -257,6 +291,13 @@ class EntryWindow(Gtk.Window):
         try:
             with open(cf, "w") as file:
                 file.write(json.dumps(config, indent=4))
+        except:
+            pass
+
+    def export_config(self, path, args):
+        try:
+            with open(path, "w") as file:
+                file.writelines("%s\n" % arg for arg in args)
         except:
             pass
 
