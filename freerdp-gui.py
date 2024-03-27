@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import gi
+
 gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gtk
@@ -21,8 +22,7 @@ class EntryWindow(Gtk.Window):
         self.connect("delete-event", self.on_delete_event)
 
         # main box
-        self.mainbox = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.mainbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.add(self.mainbox)
 
         # notebook
@@ -30,15 +30,13 @@ class EntryWindow(Gtk.Window):
         self.mainbox.pack_start(self.notebook, True, True, 0)
 
         # page 1
-        self.nb_page1 = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.nb_page1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.nb_page1.set_border_width(10)
         self.notebook.append_page(self.nb_page1, Gtk.Label(label="General"))
 
         # page 2
         self.scroll = Gtk.ScrolledWindow()
-        self.nb_page2 = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.nb_page2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.nb_page2.set_border_width(10)
         self.scroll.add(self.nb_page2)
         self.notebook.append_page(self.scroll, Gtk.Label(label="Settings"))
@@ -57,8 +55,7 @@ class EntryWindow(Gtk.Window):
         for row in self.config["hosts"]:
             self.hoststore.append([row])
         # self.host_store.append(["host.example.org"])
-        self.cb_hostname = Gtk.ComboBox.new_with_model_and_entry(
-            self.hoststore)
+        self.cb_hostname = Gtk.ComboBox.new_with_model_and_entry(self.hoststore)
         self.cb_hostname.set_entry_text_column(0)
         self.cb_hostname.set_active(0)
         self.cb_hostname.get_child().set_activates_default(True)
@@ -116,8 +113,7 @@ class EntryWindow(Gtk.Window):
         # self.page2.pack_start(self.check_editable, False, False, 0)
         # end page 2
 
-        self.buttonbox = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.buttonbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.buttonbox.set_border_width(10)
         self.mainbox.pack_end(self.buttonbox, False, False, 0)
 
@@ -166,7 +162,8 @@ class EntryWindow(Gtk.Window):
     def on_save_clicked(self, button):
         print("on_save_event")
         fc = Gtk.FileChooserDialog(
-            title="Save File", parent=self, action=Gtk.FileChooserAction.SAVE)
+            title="Save File", parent=self, action=Gtk.FileChooserAction.SAVE
+        )
         fc.add_buttons(
             Gtk.STOCK_CANCEL,
             Gtk.ResponseType.CANCEL,
@@ -195,7 +192,12 @@ class EntryWindow(Gtk.Window):
 
     def show_error(self, text):
         dialog = Gtk.MessageDialog(
-            transient_for=self, flags=0, message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, text="Error",)
+            transient_for=self,
+            flags=0,
+            message_type=Gtk.MessageType.ERROR,
+            buttons=Gtk.ButtonsType.OK,
+            text="Error",
+        )
         dialog.format_secondary_text(text)
         dialog.run()
         dialog.destroy()
@@ -267,7 +269,7 @@ class EntryWindow(Gtk.Window):
             "username": config["username"] if "username" in config else "",
             "fullscreen": config["fullscreen"] if "fullscreen" in config else False,
             "clipboard": config["clipboard"] if "clipboard" in config else True,
-            "homedrive": config["homedrive"] if "homedrive" in config else True
+            "homedrive": config["homedrive"] if "homedrive" in config else True,
         }
         print(json.dumps(self.config, indent=4))
 
@@ -281,7 +283,7 @@ class EntryWindow(Gtk.Window):
             "username": self.entry_username.get_text(),
             "fullscreen": self.check_fullscreen.get_active(),
             "clipboard": self.check_clipboard.get_active(),
-            "homedrive": self.check_homedrive.get_active()
+            "homedrive": self.check_homedrive.get_active(),
         }
 
         print(json.dumps(config, indent=4))
