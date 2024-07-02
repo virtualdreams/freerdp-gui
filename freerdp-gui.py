@@ -204,7 +204,7 @@ class EntryWindow(Gtk.Window):
 
     def build_parameters(self):
         # the application
-        args = ["xfreerdp"]
+        args = ["xfreerdp3"]
 
         # the arguments
         # args.append("/d:domain")
@@ -215,15 +215,14 @@ class EntryWindow(Gtk.Window):
         args.append("/dynamic-resolution")
         args.append("/rfx")
         args.append("/gfx")
-        args.append("/gfx-progressive")
+        args.append("/gfx:progressive")
         args.append("/multitransport")
-        args.append("/cert-ignore")
-        args.append("/cert-tofu")
+        args.append("/cert:ignore,tofu")
         args.append("/menu-anims")
         args.append("/fonts")
         args.append("/aero")
         args.append("/window-drag")
-        args.append("/kbd:German")
+        args.append("/kbd:layout:German")
 
         if self.check_fullscreen.get_active():
             args.append("/f")
